@@ -28,6 +28,12 @@ q1b_est = sum(sum(three_roll_sums, 2) >= 1) / N;
 print_res('1b', q1b_exact, q1b_est);
 
 %% 1c
+% For both this question and the 1d:
+% Both the exact (analytical) and simulated values are 0.000000
+% to 6 digits of precision; this is due to the probability being
+% a small number raised to the sixth power. If we set S to a smaller
+% value (e.g., S=1 or S=2), we see that the exact and simulated
+% values match.
 q1c_exact = (q1b_exact)^S;
 rolls = roll_dice([N*T*S D], F);
 three_roll_sums = reshape(sum(rolls, 2) == 18, [], T);
@@ -38,11 +44,6 @@ print_res('1c', q1c_exact, q1c_est);
 
 %% 1d 
 % P(all <= 9) - P(all <= 9 && none == 9)
-% Both the exact (analytical) and simulated values are 0.000000
-% to 6 digits of precision; this is due to the probability being
-% a small number raised to the sixth power. If we set S to a smaller
-% value (e.g., S=1 or S=2), we see that the exact and simulated
-% values match.
 q1d_exact = ((81/216)^T - ((81-25)/216)^T)^S;
  
 rolls = roll_dice([N*T*S D], F);
