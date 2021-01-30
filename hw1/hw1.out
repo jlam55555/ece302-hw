@@ -1,0 +1,32 @@
+Question 1a: Exact: 0.004630; Estimate: 0.004900; % Err: 5.840000%
+Question 1b: Exact: 0.013825; Estimate: 0.014260; % Err: 3.148804%
+Question 1c: Exact: 0.000000; Estimate: 0.000000; % Err: 100.000000%
+Question 1d: Exact: 0.000000; Estimate: 0.000000; % Err: 100.000000%
+Question 2a: avg. troll hp: Exact: 2.500000; Estimate: 2.499770; % Err: 0.009200%
+Question 2a: avg. fb dmg: Exact: 3.000000; Estimate: 2.998790; % Err: 0.040333%
+Question 2a: P(dmg > 3): Exact: 0.250000; Estimate: 0.249830; % Err: 0.068000%
+2b: Histogram of Troll HPs (hp={1,2,3,4})
+
+q2b_exact =
+
+    0.2500    0.2500    0.2500    0.2500
+
+
+q2b_est =
+
+    0.2503    0.2489    0.2519    0.2489
+
+2b: Histogram of Firebolt Damage (dmg={2,3,4})
+
+q2b_exact =
+
+    0.2500    0.5000    0.2500
+
+
+q2b_est =
+
+    0.2498    0.5010    0.2491
+
+Question 2c: Exact: 0.342896; Estimate: 0.342190; % Err: 0.205750%
+Question 2d: Exact: 3.941818; Estimate: 3.945635; % Err: 0.096823%
+Question 2e: Exact: 4.125000; Estimate: 4.129340; % Err: 0.105212%

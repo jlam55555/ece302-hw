@@ -22,25 +22,33 @@ print_res('1a', q1a_exact, q1a_est);
 %% 1b
 q1b_exact = 1 - (1/216)^0*(215/216)^T;
 rolls = roll_dice([N*T D], F);
-q1b_est = sum(sum(reshape(sum(rolls, 2) == 18, N, T), 2) >= 1) / N;
+three_roll_sums = reshape(sum(rolls, 2) == 18, N, T);
+q1b_est = sum(sum(three_roll_sums, 2) >= 1) / N;
 
 print_res('1b', q1b_exact, q1b_est);
 
 %% 1c
 q1c_exact = (q1b_exact)^S;
 rolls = roll_dice([N*T*S D], F);
-q1c_est = sum(sum(reshape(sum(reshape(sum(rolls, 2) == 18, [], T), 2) >= 1, ...
-	[], S), 2) == S) / N;
+three_roll_sums = reshape(sum(rolls, 2) == 18, [], T);
+ability_scores = reshape(sum(three_roll_sums, 2) >= 1, [], S);
+q1c_est = sum(sum(ability_scores, 2) == S) / N;
 
 print_res('1c', q1c_exact, q1c_est);
 
 %% 1d 
 % P(all <= 9) - P(all <= 9 && none == 9)
+% Both the exact (analytical) and simulated values are 0.000000
+% to 6 digits of precision; this is due to the probability being
+% a small number raised to the sixth power. If we set S to a smaller
+% value (e.g., S=1 or S=2), we see that the exact and simulated
+% values match.
 q1d_exact = ((81/216)^T - ((81-25)/216)^T)^S;
  
 rolls = roll_dice([N*T*S D], F);
-q1d_est = sum(sum(reshape(max(reshape(sum(rolls, 2), [], T), [], 2) == 9, ...
-	[], S), 2) == S) / N;
+three_roll_sums = reshape(sum(rolls, 2), [], T);
+ability_scores = reshape(max(three_roll_sums, [], 2) == 9, [], S);
+q1d_est = sum(sum(ability_scores, 2) == S) / N;
 
 print_res('1d', q1d_exact, q1d_est);
 
@@ -54,33 +62,32 @@ F_K = 2;			% number of faces on Keene die
 q2a_exact = (1*1 + 2*1 + 3*1 + 4*1) / 4;
 rolls = roll_dice([N, D_T], F_T);
 q2a_est = mean(sum(rolls, 2));
-print_res('2a', q2a_exact, q2a_est);
+print_res('2a: avg. troll hp', q2a_exact, q2a_est);
 
 % average damage from fireball
 q2a_exact = (2*1 + 3*2 + 4*1) / 4;
 rolls = roll_dice([N, D_K], F_K);
 q2a_est = mean(sum(rolls, 2));
-print_res('2a', q2a_exact, q2a_est);
+print_res('2a: avg. fb dmg', q2a_exact, q2a_est);
 
-% TODO: bound on the probability?
 % probability of dealing more than 3 damage with a fireball
 q2a_exact = 1/4;
 rolls = roll_dice([N, D_K], F_K);
 q2a_est = sum(sum(rolls, 2) > 3) / N;
-print_res('2a', q2a_exact, q2a_est);
+print_res('2a: P(dmg > 3)', q2a_exact, q2a_est);
 
 %% 2b
 q2b_exact = ones(1, 4) / 4;
 rolls = roll_dice([N D_T], F_T);
 q2b_est = histcounts(sum(rolls, 2), 'BinMethod', 'integers') / N;
-fprintf('2b\n%d\n');
+fprintf('2b: Histogram of Troll HPs (hp={1,2,3,4})\n');
 q2b_exact
 q2b_est
 
 q2b_exact = [0.25 0.5 0.25];
 rolls = roll_dice([N D_K], F_K);
 q2b_est = histcounts(sum(rolls, 2), 'BinMethod', 'integers') / N;
-fprintf('2b\n');
+fprintf('2b: Histogram of Firebolt Damage (dmg={2,3,4})\n');
 q2b_exact
 q2b_est
 
@@ -89,6 +96,7 @@ q2b_est
 % fireball can kill the trolls then we do that trial 6 times
 %given troll health is 1 or 2, trolls always die, if health is
 % 3 then 75% and if health is 4, then 25%
+
 q2c_exact = 0.25*(1/2)^6+0.5*(3/4)^6+0.25;
 rolls_troll = reshape(roll_dice([N*6 D_T], F_T), [] ,6);
 rolls_fire = sum(roll_dice([N D_K], F_K),2);
