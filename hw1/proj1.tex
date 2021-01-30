@@ -1,0 +1,105 @@
+\documentclass{article}
+
+\usepackage{amsmath}
+
+\title{ECE302 -- Project 1 Analytical Results}
+\author{Steven Lee \& Jonathan Lam}
+\date{\today}
+
+\begin{document}
+	\maketitle
+	
+	\noindent Let $X_i$ be the random variable denoting the roll of a single die; let $Y_j=X_1+X_2+X_3$ be the random variable denoting the roll of three die to generate an ability score; let $Z=\max(Y_1,Y_2,Y_3)$ be the random variable denoting the maximum of three trials to generate an ability score (using the ``fun'' method). All $X_i$ are independent uniform IID; thus all $Y_j$ are independent uniform IID, and all $Z_k$ are independent uniform IID.
+	
+	\begin{enumerate}
+		\item 
+		\begin{enumerate}
+			\item \begin{equation*}
+				P(Y=18)=P(X_1=6,X_2=6,X_3=6)=\frac{1}{6}\frac{1}{6}\frac{1}{6}=\frac{1}{6^3}
+			\end{equation*}
+			
+			\item
+			\begin{equation*}
+				P(Z=18)=1-P((Y_1\ne 18)\land (Y_2\ne 18)\land (Y_3\ne 18))=1-\left(1-\frac{1}{6^3}\right)^3
+			\end{equation*}
+			
+			\item
+			\begin{equation*}
+				P(Z_i=18,\ 1\le i\le 6)=(P(Z=18))^6
+			\end{equation*}
+			
+			\item 
+			\begin{align*}
+				P(Z=9)&=P(\text{all sums }\le 9)-P((\text{all sums }\le9)\land(\text{no sums }=9))\\
+				&=P((Y_1\le 9)\land (Y_2\le 9)\land(Y_3\le 9))\\
+				&-P((Y_1\le 8)\land (Y_2\le 8)\land(Y_3\le 8))\\
+				&=\left(\frac{81}{216}\right)^3-\left(\frac{56}{216}\right)^3
+			\end{align*}
+			\begin{gather*}
+				P(Z_i=9,\ 1\le i\le 6)=(P(Z=9))^6
+			\end{gather*}
+		\end{enumerate}
+	
+		\clearpage
+		\item
+		Let $X_i$ denote the random variable representing the hitpoints (hp) of a goblin, and $Y_j$ denote the random variable representing the damage (dmg) of a fireball shot. Note that $X_i\cup Y_j$ are mutually independent.
+		
+		\begin{enumerate}
+			\item
+			\begin{align*}
+				E[X]&=\sum_{x} xP(X=x)\\
+				&=1(0.25)+2(0.25)+3(0.25)+4(0.25)\\
+				&=2.5\\
+				E[Y]&=\sum_{y}yP(Y=y)\\
+				&=2(0.25)+3(0.5)+4(0.25)\\
+				&=3\\
+				E[Y>3]&=P(Y=4)=0.25
+			\end{align*}
+			
+			\item
+			\begin{gather*}
+				P(X=1)=P(X=2)=P(X=3)=P(X=4)=0.25\\
+				P(Y=2)=P(Y=4)=0.25\\
+				P(Y=3)=0.5
+			\end{gather*}
+			
+			\item 
+			We break up this question using a partition of $Y$.
+			\begin{align*}
+				P(\text{slay all 6})&=P(Y\ge X_i\ \forall X_i)\\
+				&=P((Y\ge X\ \forall X_i|Y=2)\lor (Y\ge X\ \forall X_i|Y=3)\\
+				&\ \ \ \ \ \ \ \ \lor (Y\ge X\ \forall X_i|Y=4))\\
+				&=\left(\frac{1}{2}\right)^6(0.25)+\left(\frac{3}{4}\right)^6(0.5)+1^6(0.25)
+			\end{align*}
+			
+			\item
+			We can break down the event in question into a partition of three events (note that it is not possible that the surviving troll has $\le 2$ hp or that the firebolt did $4$ dmg):
+			\begin{enumerate}
+				\item hp of surviving troll $=4$, dmg $=3$, all other trolls have hp $\le 3$
+				\item hp of surviving troll $=4$, dmg $=2$, all other trolls have hp $\le 2$
+				\item hp of surviving troll $=3$, dmg $=2$, all other trolls have hp $\le 2$
+			\end{enumerate}
+			The probabilities of these events are easy to calculate.
+			
+			Using Bayes' rule, we can calculate the posterior pmf of $X$ given that five trolls didn't survive.
+			\begin{equation*}
+				P(X=x|\text{five died})=\frac{P((X=x)\land(\text{the other five died}))}{P(\text{the other five died})}
+			\end{equation*}
+			This in turn can be used to calculate the expected hp of the surviving troll:
+			\begin{gather*}
+				E[X|\text{the other five died}]=(3)P((\text{iii}))+(4)P((\text{i})+(\text{ii}))\\
+				=3\left(\frac{1}{4}\right)\left(\frac{1}{4}\right)\left(\frac{1}{2}\right)^5+4\left[\left(\frac{1}{4}\right)+\left(\frac{1}{2}\right)\left(\frac{3}{4}\right)^5+\left(\frac{1}{4}\right)\left(\frac{1}{4}\right)\left(\frac{1}{2}\right)^5\right]
+			\end{gather*}
+			
+			\item
+			Let $Z_i$ denote the random variable denoting a roll of the 20-sided die (to decide whether Shedjam can hit Keene or not), $W_j$ denote a roll of the 6-sided die (the Sword of Tuition's damage), and $V_k$ denote a roll of the 4-sided die (the Hammer of Tenure Denial's damage).
+			
+			\begin{align*}
+				E[\text{dmg}]&=E[\text{dmg}_{SoT}+\text{dmg}_{HTD}]\\
+				&=P(\text{hit}_{SoT})E[\text{dmg}_{SoT}|\text{hit}_{SoT}]+
+				P(\text{hit}_{HTD})E[\text{dmg}_{HTD}|\text{hit}_{HTD}]\\
+				&=\left(\frac{10}{20}\right)(3.5+3.5)+\left(\frac{10}{20}\frac{10}{20}\right)(2.5)
+			\end{align*}
+		\end{enumerate}
+	\end{enumerate}
+\end{document}
