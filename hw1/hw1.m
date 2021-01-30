@@ -133,6 +133,30 @@ q2d_est = mean(troll_hp(matches > 0));
 
 print_res('2d', q2d_exact, q2d_est);
 
+%% 2e
+D_SoT = 2;			% Sword of Tuition
+D_HTD = 1;			% Hammer of Tenure Denial
+D_hit = 1;			% to hit Keene with sword or hammer
+F_SoT = 6;
+F_HTD = 4;
+F_hit = 20;
+
+q2e_exact = 1/2*(3.5+3.5) + 1/2*1/2*(2.5);
+% calculate extra dice rolls here for simplicity; however, due to
+% independence it doesn't make affect the result
+rolls_hit = reshape(sum(roll_dice([N*2 D_hit], F_hit), 2), [], 2);
+rolls_SoT = sum(roll_dice([N D_SoT], F_SoT), 2);
+rolls_HTD = sum(roll_dice([N D_HTD], F_HTD), 2);
+
+SoT_damage = rolls_SoT(rolls_hit(:, 1) >= 11);
+HTD_damage = rolls_HTD((rolls_hit(:, 1) >= 11) & (rolls_hit(:, 2) >= 11));
+q2e_est = (sum(SoT_damage) + sum(HTD_damage)) / N;
+
+print_res('2e', q2e_exact, q2e_est);
+
+%% 2f
+% when u play dnd with us :)
+
 % helper function
 function print_res(question, exact, est)
 	pct_err = abs((est - exact) / exact * 100);
