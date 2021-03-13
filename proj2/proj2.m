@@ -1,6 +1,6 @@
 % clc; clear; close all;
 
-%% 
+%% 1a
 N = 1e6;
 
 Y = 2*rand(N, 1) - 1;
@@ -43,3 +43,27 @@ plot(alldataxs, alldatays, 'r');
 
 MSE = mean((YYhat(:,1) - YYhat(:,2)).^2)
 
+%% 1b
+Ylin = X/5;
+
+LMSE = mean((Ylin - Y).^2)
+
+%% 2
+muy = 1;
+sigy = 1;
+sigr = 1;
+R = 2;
+
+Ygaus = muy + sigy * randn(N, 1);
+Rgaus = sigr * randn(N, R);
+
+Xgaus = Ygaus + Rgaus;
+
+% solve matrix equation Ax=b
+A = [sigy^2+sigr^2 sigy^2; sigy^2 sigy^2+sigr^2];
+b = sigy^2 * ones(R, 1);
+a = A^-1 * b;
+a0 = muy * (1 - sum(a));
+
+Yhat = a0 + sum(a.' .* X, 2);
+MSE = mean((Yhat - Y).^2)
