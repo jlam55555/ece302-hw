@@ -100,6 +100,7 @@ plot(Rs, mvr(:,1), Rs, mvr(:,2));
 xlabel('Number of observations');
 ylabel('LMMSE');
 title('LMMSE vs. Number of observations ($$\sigma_y=\sigma_r=5$$)');
+legend({'Empirical LMMSE', 'Theoretical LMMSE'});
 % plot MSE vs sig_y
 nexttile();
 mvsy = reshape(res(5, :, 5, :), [], 2);
@@ -107,6 +108,7 @@ plot(sig_ys, mvsy(:,1), sig_ys, mvsy(:,2));
 xlabel('$$\sigma_y$$');
 ylabel('LMMSE');
 title('LMMSE vs. $$\sigma_y$$ ($$R=\sigma_r=5$$)');
+legend({'Empirical LMMSE', 'Theoretical LMMSE'});
 % plot MSE vs sig_r
 nexttile();
 mvsr = reshape(res(5, 5, :, :), [], 2);
@@ -114,6 +116,7 @@ plot(sig_rs, mvsr(:,1), sig_rs, mvsr(:,2));
 xlabel('$$\sigma_r$$');
 ylabel('LMMSE');
 title('LMMSE vs. $$\sigma_r$$ ($$R=\sigma_y=5$$)');
+legend({'Empirical LMMSE', 'Theoretical LMMSE'});
 
 % displaying results in a table
 res = reshape(res, [], 2);
