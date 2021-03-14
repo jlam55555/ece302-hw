@@ -50,9 +50,9 @@ LMSE = mean((Ylin - Y).^2)
 
 %% 2
 muy = 1;
-sigy = 1;
-sigr = 1;
-R = 2;
+sigy = 8;
+sigr = 5;
+R = 10;
 
 Ygaus = muy + sigy * randn(N, 1);
 Rgaus = sigr * randn(N, R);
@@ -60,10 +60,35 @@ Rgaus = sigr * randn(N, R);
 Xgaus = Ygaus + Rgaus;
 
 % solve matrix equation Ax=b
-A = [sigy^2+sigr^2 sigy^2; sigy^2 sigy^2+sigr^2];
-b = sigy^2 * ones(R, 1);
-a = A^-1 * b;
+% general case: 8.70; less general case: 8.77
+% 8.77
+
+% sig^2_X1 = var(y+r) = var(y) + var(r) = sigy^2 + sigr^2
+% sig_X1X2 = E[(X1-mu_x1)*(X2-mu_x2)] = E[X1X2] - muY^2 = E[Y^2]-mu_Y^2 = var(Y)
+
+% E[X1x2]=E[(Y+R1)(Y+R2)]=E[Y^2+YR_1+Y_R2+R_1R_2]=E[Y^2]
+
+% diagonal terms are all : sigy^2+sigr^2
+% all other terms are : sigy^2
+
+% XiXj i != j
+
+% A = [sigy^2+sigr^2 sigy^2; sigy^2 sigy^2+sigr^2]; 
+% b = sigy^2 * ones(R, 1);
+% a = A^-1 * b;
+
+% 8.70
+C_XX = sigy^2 * ones(R) + sigr^2 * eye(R);
+C_XY = sigy^2 * ones(R, 1);
+a = C_XX^-1 * C_XY;
+
+% 8.74: comes from requirement that Yhat_lin is unbiased
+% (same as 8.60 assuming that mu_x = mu_y since mu_r=0)
 a0 = muy * (1 - sum(a));
 
-Yhat = a0 + sum(a.' .* X, 2);
-MSE = mean((Yhat - Y).^2)
+Yhat = a0 + sum(a.' .* Xgaus, 2);
+MSE = mean((Yhat - Ygaus).^2)
+
+% 8.73: associated MMSE
+sigy^2 - C_XY.'*(C_XX)^-1*C_XY
+
