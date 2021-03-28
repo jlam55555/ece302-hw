@@ -1,24 +1,25 @@
 % ECE302 -- Project 4
 % Steven Lee & Jonathan Lam
 clc; clear; close all;
-
-%% 1
+set(0, 'defaultTextInterpreter', 'latex');
 
 % ML estimate function for alpha in rayleigh RV
 est_fn_ray = @(samples) sqrt(mean(samples.^2)/2);
 
+%% Q1
+
 % values to loop over
 Ns = logspace(1, 5, 5);
-params = 1:3;
+params = 1:4;
 
-% dimensions: (value of N) x (value of param) x (exp/ray) x (bias/var/mse)
-% results = zeros(length(Ns), length(params), 2, 3);
-
-figure();
+% one plot for exponential, one for rayleigh
+figure('Position', [0 0 1000 750]);
 t1 = tiledlayout(3, length(params));
+sgtitle("Exponential R.V.");
 
-figure();
+figure('Position', [0 0 1000 750]);
 t2 = tiledlayout(3, length(params));
+sgtitle("Rayleigh R.V.");
 
 for param=params
     exp_res = zeros(length(Ns), 3);
@@ -46,26 +47,92 @@ for param=params
     % for exponential
     nexttile(t1);
     loglog(Ns, abs(exp_res(:,1)));
-    title('(Magnitude of) Bias');
+    title(sprintf('(Magnitude of) Bias ($$\\mu=%d$$)', param));
+    xlabel("Samples");
+    ylabel("$$E[\hat\mu-\mu]$$");
+    grid on;
+    
     nexttile(t1);
     loglog(Ns, exp_res(:,2));
     title('Variance');
+    xlabel("Samples");
+    ylabel("$$E[(\hat\mu-\bar{\hat\mu})^2]$$");
+    grid on;
+    
     nexttile(t1);
     loglog(Ns, exp_res(:,3));
     title('MSE');
+    xlabel("Samples");
+    ylabel("$$E[(\hat\mu-\mu)^2]$$");
+    grid on;
     
     % for rayleigh
     nexttile(t2);
     loglog(Ns, abs(ray_res(:,1)));
-    title('(Magnitude of) Bias');
+    title(sprintf('(Magnitude of) Bias ($$\\alpha=%d$$)', param));
+    xlabel("Samples");
+    ylabel("$$E[\hat\alpha-\alpha]$$");
+    grid on;
+    
     nexttile(t2);
     loglog(Ns, ray_res(:,2));
     title('Variance');
+    xlabel("Samples");
+    ylabel("$$E[(\hat\alpha-\bar{\hat\alpha})^2]$$");
+    grid on;
+    
     nexttile(t2);
     loglog(Ns, ray_res(:,3));
     title('MSE');
+    xlabel("Samples");
+    ylabel("$$E[(\hat\alpha-\alpha)^2]$$");
+    grid on;
 end
 
+% Explanation of figures:
+% - The first figure is for the exponential R.V., the other for Rayleigh.
+% - Each column represents one value of the parameter (mu or lambda).
+% - For each value of the parameter, multiple (10) trials of different
+%   sample sizes (N={10,100,1000,10000,100000}) were used. The bias,
+%   variance, and MSE of the estimator was taken from these.
+% - Each plot plots N (number of samples) on the x-axis vs. the specified
+%   metric.
+
+
+%% Q2
+load('data');
+data = data.';      % need a column vector
+
+% range of values of data
+x = linspace(min(data), max(data), 1000);
+
+mu_est = mean(data);
+alpha_est = est_fn_ray(data);
+
+lambda_est = 1/mu_est;
+exp_pdf = lambda_est * exp(-lambda_est * x);
+
+alpha2_est = alpha_est^2;
+ray_pdf = x/alpha2_est .* exp(-x.^2/(2*alpha2_est));
+
+% show histogram to see which distribution fits better
+figure();
+hold on;
+histogram(data, 'Normalization', 'pdf');
+plot(x, exp_pdf);
+plot(x, ray_pdf);
+legend(["Sample data (normalized to PDF)", ...
+    sprintf("Exponential PDF (mu=%f)", mu_est), ...
+    sprintf("Rayleigh PDF (alpha=%f)", alpha_est)]);
+title("Data vs. Exponential and Rayleigh ML-Estimated Distributions");
+ylabel("PDF");
+xlabel("Values");
+
+% we see that the histogram closely matches the Rayleigh distribution,
+% so it most likely is drawn from this distribution
+
+
+%% helper function to run experiment
 
 % N = number of samples
 % M = number of trials
@@ -74,13 +141,12 @@ end
 % estfn = calculate ML estimate of parameter given samples
 function [bias, variance, mse] = run_experiment(N, M, param, randfn, estfn)
     % generate M samples of N values sampled from the distribution
-	samples = randfn(param, N, M);
+    samples = randfn(param, N, M);
     
     % generate ML estimate of variable
-	est = estfn(samples);
-
-	% calculate bias, variance, MSE (eq. 8.18) of estimator
-	bias = mean(est) - param;
-	variance = var(est);
-	mse = variance + bias^2;
+    est = estfn(samples);
+    
+    bias = mean(est) - param;
+    variance = var(est);
+    mse = variance + bias^2;
 end

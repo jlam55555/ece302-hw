@@ -1,59 +1,151 @@
 % ECE302 -- Project 4
 % Steven Lee & Jonathan Lam
 clc; clear; close all;
+set(0, 'defaultTextInterpreter', 'latex');
 
-%% 1
-% Ns = logspace(1, 1e5, 7);
-% M = 10;
-
-% mu = 1;		% mean parameter = 1/lambda
-% alpha = 3;	% scale parameter = alpha (not alpha^2)
-
-% exp_samples = exprnd(mu, N, M);
-% ray_samples = raylrnd(alpha, N, M);
-
+% ML estimate function for alpha in rayleigh RV
 est_fn_ray = @(samples) sqrt(mean(samples.^2)/2);
 
-for N=logspace(0, 5, 6)
-for M=100
-for param=1
-	[exp_bias, exp_var, exp_mse] = run_experiment(N, M, param, @exprnd, @mean);
-	[ray_bias, ray_var, ray_mse] = run_experiment(N, M, param, @raylrnd, est_fn_ray);
+%% Q1
 
-	fprintf("N=%d param=%d: %f %f %f; %f %f %f\n", ...
-		N, param, ...
-		exp_bias, exp_var, exp_mse, ...
-		ray_bias, ray_var, ray_mse);
-end
-end
+% values to loop over
+Ns = logspace(1, 5, 5);
+params = 1:4;
+
+% one plot for exponential, one for rayleigh
+figure('Position', [0 0 1000 750]);
+t1 = tiledlayout(3, length(params));
+sgtitle("Exponential R.V.");
+
+figure('Position', [0 0 1000 750]);
+t2 = tiledlayout(3, length(params));
+sgtitle("Rayleigh R.V.");
+
+for param=params
+    exp_res = zeros(length(Ns), 3);
+    ray_res = zeros(length(Ns), 3);
+    
+    for Ni=1:length(Ns)
+        for M=100
+            N = Ns(Ni);
+            
+            [exp_bias, exp_var, exp_mse] = ...
+                run_experiment(N, M, param, @exprnd, @mean);
+            [ray_bias, ray_var, ray_mse] = ...
+                run_experiment(N, M, param, @raylrnd, est_fn_ray);
+            
+            exp_res(Ni, :) = [exp_bias exp_var exp_mse];
+            ray_res(Ni, :) = [ray_bias ray_var ray_mse];
+
+            fprintf("N=%d param=%d: %f %f %f; %f %f %f\n", ...
+                N, param, ...
+                exp_bias, exp_var, exp_mse, ...
+                ray_bias, ray_var, ray_mse);
+        end
+    end
+
+    % for exponential
+    nexttile(t1);
+    loglog(Ns, abs(exp_res(:,1)));
+    title(sprintf('(Magnitude of) Bias ($$\\mu=%d$$)', param));
+    xlabel("Samples");
+    ylabel("$$E[\hat\mu-\mu]$$");
+    grid on;
+    
+    nexttile(t1);
+    loglog(Ns, exp_res(:,2));
+    title('Variance');
+    xlabel("Samples");
+    ylabel("$$E[(\hat\mu-\bar{\hat\mu})^2]$$");
+    grid on;
+    
+    nexttile(t1);
+    loglog(Ns, exp_res(:,3));
+    title('MSE');
+    xlabel("Samples");
+    ylabel("$$E[(\hat\mu-\mu)^2]$$");
+    grid on;
+    
+    % for rayleigh
+    nexttile(t2);
+    loglog(Ns, abs(ray_res(:,1)));
+    title(sprintf('(Magnitude of) Bias ($$\\alpha=%d$$)', param));
+    xlabel("Samples");
+    ylabel("$$E[\hat\alpha-\alpha]$$");
+    grid on;
+    
+    nexttile(t2);
+    loglog(Ns, ray_res(:,2));
+    title('Variance');
+    xlabel("Samples");
+    ylabel("$$E[(\hat\alpha-\bar{\hat\alpha})^2]$$");
+    grid on;
+    
+    nexttile(t2);
+    loglog(Ns, ray_res(:,3));
+    title('MSE');
+    xlabel("Samples");
+    ylabel("$$E[(\hat\alpha-\alpha)^2]$$");
+    grid on;
 end
 
+% Explanation of figures:
+% - The first figure is for the exponential R.V., the other for Rayleigh.
+% - Each column represents one value of the parameter (mu or lambda).
+% - For each value of the parameter, multiple (10) trials of different
+%   sample sizes (N={10,100,1000,10000,100000}) were used. The bias,
+%   variance, and MSE of the estimator was taken from these.
+% - 
+
+
+%% Q2
+load('data');
+data = data.';      % need a column vector
+
+% range of values of data
+x = linspace(min(data), max(data), 1000);
+
+mu_est = mean(data);
+alpha_est = est_fn_ray(data);
+
+lambda_est = 1/mu_est;
+exp_pdf = lambda_est * exp(-lambda_est * x);
+
+alpha2_est = alpha_est^2;
+ray_pdf = x/alpha2_est .* exp(-x.^2/(2*alpha2_est));
+
+% show histogram to see which distribution fits better
+figure();
+hold on;
+histogram(data, 'Normalization', 'pdf');
+plot(x, exp_pdf);
+plot(x, ray_pdf);
+legend(["Sample data (normalized to PDF)", ...
+    sprintf("Exponential PDF (mu=%f)", mu_est), ...
+    sprintf("Rayleigh PDF (alpha=%f)", alpha_est)]);
+title("Data vs. Exponential and Rayleigh ML-Estimated Distributions");
+ylabel("PDF");
+xlabel("Values");
+
+% we see that the histogram closely matches the Rayleigh distribution,
+% so it most likely is drawn from this distribution
+
+
+%% helper function to run experiment
 
 % N = number of samples
 % M = number of trials
 % param = actual parameter
 % randfn = function to generate random samples
 % estfn = calculate ML estimate of parameter given samples
-function [bias, var, mse] = run_experiment(N, M, param, randfn, estfn)
-	samples = randfn(param, N, M);
-
-	% ML estimate of mean of exponential distribution is sample mean
-	% est = mean(exp_samples);
-	est = estfn(samples);
-
-	% ML estimate of alpha^2 was calculated in question 8.28 from txtbook
-	% alpha_est = sqrt(mean(ray_samples.^2)/2);
-
-	% calculate bias and variance
-	% bias = E[hat{X}]-X -- X is mu, alpha
-	% hat{mu} - mu
-	bias = mean(est - param);
-
-	% variance = E[(hat{X}-X)^2]
-	var = mean((est - mean(est)).^2);
-
-	% MSE = Var(est) + Bias^2(est)
-	% exp_mse = exp_var + exp_bias^2;
-	% ray_mse = ray_var + ray_bias^2;
-	mse = var + bias^2;
+function [bias, variance, mse] = run_experiment(N, M, param, randfn, estfn)
+    % generate M samples of N values sampled from the distribution
+    samples = randfn(param, N, M);
+    
+    % generate ML estimate of variable
+    est = estfn(samples);
+    
+    bias = mean(est) - param;
+    variance = var(est);
+    mse = variance + bias^2;
 end
