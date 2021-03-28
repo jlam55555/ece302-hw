@@ -1,0 +1,59 @@
+% ECE302 -- Project 4
+% Steven Lee & Jonathan Lam
+clc; clear; close all;
+
+%% 1
+% Ns = logspace(1, 1e5, 7);
+% M = 10;
+
+% mu = 1;		% mean parameter = 1/lambda
+% alpha = 3;	% scale parameter = alpha (not alpha^2)
+
+% exp_samples = exprnd(mu, N, M);
+% ray_samples = raylrnd(alpha, N, M);
+
+est_fn_ray = @(samples) sqrt(mean(samples.^2)/2);
+
+for N=logspace(0, 5, 6)
+for M=100
+for param=1
+	[exp_bias, exp_var, exp_mse] = run_experiment(N, M, param, @exprnd, @mean);
+	[ray_bias, ray_var, ray_mse] = run_experiment(N, M, param, @raylrnd, est_fn_ray);
+
+	fprintf("N=%d param=%d: %f %f %f; %f %f %f\n", ...
+		N, param, ...
+		exp_bias, exp_var, exp_mse, ...
+		ray_bias, ray_var, ray_mse);
+end
+end
+end
+
+
+% N = number of samples
+% M = number of trials
+% param = actual parameter
+% randfn = function to generate random samples
+% estfn = calculate ML estimate of parameter given samples
+function [bias, var, mse] = run_experiment(N, M, param, randfn, estfn)
+	samples = randfn(param, N, M);
+
+	% ML estimate of mean of exponential distribution is sample mean
+	% est = mean(exp_samples);
+	est = estfn(samples);
+
+	% ML estimate of alpha^2 was calculated in question 8.28 from txtbook
+	% alpha_est = sqrt(mean(ray_samples.^2)/2);
+
+	% calculate bias and variance
+	% bias = E[hat{X}]-X -- X is mu, alpha
+	% hat{mu} - mu
+	bias = mean(est - param);
+
+	% variance = E[(hat{X}-X)^2]
+	var = mean((est - mean(est)).^2);
+
+	% MSE = Var(est) + Bias^2(est)
+	% exp_mse = exp_var + exp_bias^2;
+	% ray_mse = ray_var + ray_bias^2;
+	mse = var + bias^2;
+end

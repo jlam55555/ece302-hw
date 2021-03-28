@@ -132,7 +132,8 @@ function [emp, theo] = calc_llmse(mu_y, sig_y, sig_r, N, R)
 	% solve normal equation C_XX*a=C_XY (8.70)
 	C_XX = sig_y^2 * ones(R) + sig_r^2 * eye(R);
 	C_XY = sig_y^2 * ones(R, 1);
-	a = C_XX^-1 * C_XY;
+% 	a = C_XX^-1 * C_XY;
+    a = C_XX \ C_XY;
 
 	% 8.74: comes from requirement that Yhat_lin is unbiased
 	% (same as 8.60 assuming that mu_x=mu_y since mu_r=0)
