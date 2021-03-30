@@ -13,12 +13,12 @@ Ns = logspace(1, 5, 5);
 params = 1:4;
 
 % one plot for exponential, one for rayleigh
-figure('Position', [0 0 1000 750]);
-t1 = tiledlayout(3, length(params));
+figure('Position', [0 0 750 1000]);
+t1 = tiledlayout(length(params), 3);
 sgtitle("Exponential R.V.");
 
-figure('Position', [0 0 1000 750]);
-t2 = tiledlayout(3, length(params));
+figure('Position', [0 0 750 1000]);
+t2 = tiledlayout(length(params), 3);
 sgtitle("Rayleigh R.V.");
 
 for param=params
@@ -46,8 +46,8 @@ for param=params
 
     % for exponential
     nexttile(t1);
-    loglog(Ns, abs(exp_res(:,1)));
-    title(sprintf('(Magnitude of) Bias ($$\\mu=%d$$)', param));
+    semilogx(Ns, exp_res(:,1));
+    title(sprintf('Bias ($$\\mu=%d$$)', param));
     xlabel("Samples");
     ylabel("$$E[\hat\mu-\mu]$$");
     grid on;
@@ -68,8 +68,8 @@ for param=params
     
     % for rayleigh
     nexttile(t2);
-    loglog(Ns, abs(ray_res(:,1)));
-    title(sprintf('(Magnitude of) Bias ($$\\alpha=%d$$)', param));
+    semilogx(Ns, ray_res(:,1));
+    title(sprintf('Bias ($$\\alpha=%d$$)', param));
     xlabel("Samples");
     ylabel("$$E[\hat\alpha-\alpha]$$");
     grid on;
@@ -110,17 +110,27 @@ mu_est = mean(data);
 alpha_est = est_fn_ray(data);
 
 lambda_est = 1/mu_est;
-exp_pdf = lambda_est * exp(-lambda_est * x);
+exp_pdf = @(x) lambda_est * exp(-lambda_est * x);
 
 alpha2_est = alpha_est^2;
-ray_pdf = x/alpha2_est .* exp(-x.^2/(2*alpha2_est));
+ray_pdf = @(x) x/alpha2_est .* exp(-x.^2/(2*alpha2_est));
 
-% show histogram to see which distribution fits better
+% see which distribution generates the higher likelihood
+% (use sum of log-likelihoods, also can use product of likelihoods)
+exp_likelihood = sum(log(exp_pdf(data)));
+ray_likelihood = sum(log(ray_pdf(data)));
+
+% rayleigh has higher likelihood, so it is the more likely distribution
+fprintf("Log-likelihood of exponential distribution: %f\n" ...
+    + "Log-likelihood of rayleigh distribution: %f\n", ...
+    exp_likelihood, ray_likelihood);
+
+%% show histogram to visually see which distribution fits better
 figure();
 hold on;
 histogram(data, 'Normalization', 'pdf');
-plot(x, exp_pdf);
-plot(x, ray_pdf);
+plot(x, exp_pdf(x));
+plot(x, ray_pdf(x));
 legend(["Sample data (normalized to PDF)", ...
     sprintf("Exponential PDF (mu=%f)", mu_est), ...
     sprintf("Rayleigh PDF (alpha=%f)", alpha_est)]);
