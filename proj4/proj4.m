@@ -54,8 +54,8 @@ for j=1:length(sigmas)
     for i=1:length(etas)
         A_hat = Y > etas(i);
 
-        P_D(i) = sum((A_hat == 1) & (A == 1)) / sum(A == 1);
-        P_F(i) = sum((A_hat == 1) & (A == 0)) / sum(A == 0);
+        P_D(i) = sum((A_hat == a) & (A == a)) / sum(A == a);
+        P_F(i) = sum((A_hat == a) & (A == 0)) / sum(A == 0);
 
         % if this is the closest point to the decision boundary for part c
         if abs(etas(i) - q1c_boundary) < (etas(2) - etas(1)) / 2
@@ -80,3 +80,28 @@ for j=1:length(sigmas)
     legend(["ROC", sprintf('MAP boundary (\\eta=%f)', map_boundary), ...
         sprintf('Q1c modified cost boundary (\\eta=%f)', q1c_boundary)]);
 end
+
+%% q1d
+% use same sigma as in part a
+X = sigma*randn(N, 1);
+Y = X + A;
+
+% iterate over values of the prior probability
+p0s = linspace(0, 1, 1e2);
+costs = zeros(length(p0s), 1);
+
+for i=1:length(p0s)
+    % find best decision boundary
+    q1c_boundary = (2*sigma^2*log(p0s(i)/(10*(1-p0s(i)))) + a^2)/(2*a);
+    A_hat = Y > q1c_boundary;
+
+    % get cost
+    costs(i) = 10 * mean((A_hat == 0) & (A == a)) ...   % false negative
+        + mean((A_hat == a) & (A == 0));                % false positive
+end
+
+figure();
+plot(p0s, costs);
+ylabel('Mean cost');
+xlabel('$$P_0$$ (prior probability of target not present)');
+title('Cost vs. prior probability of target not present');
