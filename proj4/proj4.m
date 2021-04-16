@@ -105,3 +105,43 @@ plot(p0s, costs);
 ylabel('Mean cost');
 xlabel('$$P_0$$ (prior probability of target not present)');
 title('Cost vs. prior probability of target not present');
+
+%% q1e
+% TODO: later
+
+%% q2
+clc; clear; close all;
+load('Iris');
+
+N = size(features, 1);          % numbere of samples
+C = length(unique(labels));     % number of classes
+K = size(features, 2);          % number of features
+
+% split into train/test sets
+% train-test split 50/50
+is_train        = rand(N, 1) < 0.5;
+train_features  = features(is_train, :);
+train_labels    = labels(is_train, :);
+test_features   = features(is_train == 0, :);
+test_labels     = labels(is_train == 0, :);
+
+% store results of evaluating model on test dataset
+results = zeros(length(test_labels), C);
+
+% calculate class priors (on train dataset)
+priors = histcounts(test_labels) / length(test_labels);
+
+for i=1:C
+    indices = train_labels == i;
+    class_features = train_features(indices, :);
+    
+    % "train": find MAP parameters (class-conditional density)
+    mus = mean(class_features);
+    covs = cov(class_features);
+    
+    % evaluate on test set
+    results(:,i) = mvnpdf(test_features, mus, covs) * priors(i);
+end
+
+[mx, est] = max(results, [], 2);
+accuracy = mean(est == test_labels)
