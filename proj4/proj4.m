@@ -1,33 +1,65 @@
 %%% ECE302 Project 4
 % Steven Lee & Jonathan Lam
+% 
+% This project requires the Communications toolkit (for qfunc)
+% and the Probability and Statistics toolkit (for mvnpdf)
+%
+% Scratch work performed on desmos:
+% https://www.desmos.com/calculator/3bp8fsljnz
+
 set(0,'defaultTextInterpreter','latex');
 clc; clear; close all;
 
 %% q1a
-N = 1e4;
+% perform MAP estimation on a random signal plus equivariance gaussian
+% noise, and compare accuracy to theoretical accuracy
 
-% prior probabilities
-p0 = 0.8;
+N = 1e4;        % sample size
+p0 = 0.8;       % prior probability of no-target
+sigma = 0.5;    % stdev
+a = 1;          % constant value for A
 
-% choose variance
-sigma = 0.5;
-
-% choose constant value for A is a
-a = 1;
-
-% A is the signal, X is the gaussian additive noise
+% A is the source signal, X is the gaussian additive noise
 A = a*(rand(N,1) > 0.8);
 X = sigma*randn(N, 1);
 Y = X + A;
 
-% MAP decision boundary
+% MAP decision boundary: optimal (lowest) probability of error
+% to derive: f(eta|H0)*P0 = f(eta|H1)*P1, solve for eta (decision boundary)
 dec_boundary = (2*sigma^2*log(p0/(1-p0)) + a^2)/(2*a);
 
-accuracy = mean((Y > dec_boundary) == A);
+emp_accuracy = mean((Y > dec_boundary) == A)
+theo_accuracy = p0*qfunc(-dec_boundary/sigma) ...
+    + (1-p0)*qfunc((dec_boundary-a)/sigma)
 
-% TODO: write out formula for theoretical and compare results
+%% (still q1a) sanity check: plot eta vs. accuracy
+% (to demonstrate that this is actually the best error)
+
+etas = linspace(-5, 5, 1e3);
+accuracies = zeros(length(etas), 1);
+for i=1:length(etas)
+    accuracies(i) = mean((Y > etas(i)) == A);
+end
+
+figure();
+hold('on');
+plot(etas, accuracies);
+xline(dec_boundary);
+yline(theo_accuracy, 'r');
+hold('off');
+ylabel('Accuracy');
+xlabel('$$\eta$$');
+ylim([0 1]);
+title('Accuracy vs. decision boundary');
+legend(["Empirical accuracy", "Theoretical optimal decision boundary", ...
+    "Theoretical optimal accuracy"], 'Location', 'southeast');
 
 %% q1b&c
+% plotting receiver-operator characteristic at various SNR levels
+% (SNR never explicitly calculated, just mess with sigma); also indicate
+% where the MAP boundary occurs and where the boundary that optimizes
+% the cost metric in q1c occurs on the ROC
+
 etas = linspace(-10, 10, 1e3);
 sigmas = logspace(-1, 1, 5);
 P_F = zeros(length(etas), 1);
@@ -45,7 +77,7 @@ for j=1:length(sigmas)
     % q1c
     % 8.8 in detection theory pdf
     % (C01 - C11)*P1*f(y|H1) = (C10 - C00)*P0*f(y|H0)
-    % Now set C11=C00=0 (as before), but set C01=10*C10 (rather than C01=C10)
+    % Now set C11=C00=0 (as before), but set C01=10*C10 (a.o.t. C01=C10)
     %
     % basically changes the coefficients from (P1,P0) to (10*P1, P0)
     % see new factor of 10
@@ -62,6 +94,7 @@ for j=1:length(sigmas)
             q1c_i = i;
         end
 
+        % same thing but for the MAP boundary
         if abs(etas(i) - map_boundary) < (etas(2) - etas(1)) / 2
             map_i = i;
         end
@@ -82,6 +115,8 @@ for j=1:length(sigmas)
 end
 
 %% q1d
+% calculating cost of best decision boundary using cost metric from q1c
+
 % use same sigma as in part a
 X = sigma*randn(N, 1);
 Y = X + A;
@@ -107,9 +142,9 @@ xlabel('$$P_0$$ (prior probability of target not present)');
 title('Cost vs. prior probability of target not present');
 
 %% q1e
-% TODO: later
 
-%% q2
+%% q2: MAP estimate on fisheriris
+% using a multivariate gaussian estimator
 clc; clear; close all;
 load('Iris');
 
@@ -143,5 +178,6 @@ for i=1:C
     results(:,i) = mvnpdf(test_features, mus, covs) * priors(i);
 end
 
+% disregard actual maximum value (mx), just get decision (est)
 [mx, est] = max(results, [], 2);
 accuracy = mean(est == test_labels)
