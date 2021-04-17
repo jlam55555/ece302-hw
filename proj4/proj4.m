@@ -46,13 +46,16 @@ hold('on');
 plot(etas, accuracies);
 xline(dec_boundary);
 yline(theo_accuracy, 'r');
+plot(etas, normpdf(etas, 0, sigma)*p0, 'k:');
+plot(etas, normpdf(etas, a, sigma)*(1-p0), 'k:');
 hold('off');
 ylabel('Accuracy');
 xlabel('$$\eta$$');
 ylim([0 1]);
 title('Accuracy vs. decision boundary');
-legend(["Empirical accuracy", "Theoretical optimal decision boundary", ...
-    "Theoretical optimal accuracy"], 'Location', 'southeast');
+legend(["Empirical accuracy", "Theoretical optimal boundary", ...
+    "Theoretical optimal accuracy", "MAP probabilities"], ...
+    'Location', 'northwest');
 
 %% q1b&c
 % plotting receiver-operator characteristic at various SNR levels
@@ -86,8 +89,8 @@ for j=1:length(sigmas)
     for i=1:length(etas)
         A_hat = Y > etas(i);
 
-        P_D(i) = sum((A_hat == a) & (A == a)) / sum(A == a);
-        P_F(i) = sum((A_hat == a) & (A == 0)) / sum(A == 0);
+        P_D(i) = sum((A_hat == 1) & (A == a)) / sum(A == a);
+        P_F(i) = sum((A_hat == 1) & (A == 0)) / sum(A == 0);
 
         % if this is the closest point to the decision boundary for part c
         if abs(etas(i) - q1c_boundary) < (etas(2) - etas(1)) / 2
@@ -111,7 +114,8 @@ for j=1:length(sigmas)
     title(sprintf('Receiver Operating Characteristic $$\\sigma=%f$$', ...
         sigmas(j)));
     legend(["ROC", sprintf('MAP boundary (\\eta=%f)', map_boundary), ...
-        sprintf('Q1c modified cost boundary (\\eta=%f)', q1c_boundary)]);
+        sprintf('Q1c modified cost boundary (\\eta=%f)', q1c_boundary)],...
+        'Location', 'southeast');
 end
 
 %% q1d
@@ -142,6 +146,95 @@ xlabel('$$P_0$$ (prior probability of target not present)');
 title('Cost vs. prior probability of target not present');
 
 %% q1e
+% similar to part a, but now we have two distributions with the same
+% mean but different variances (a.o.t. same variance, different means);
+
+A = a * ones(N, 1); % use same mean a as before, now for both distributions
+sigmaz = [3 5];     % stdev for first distribution (target not present)
+sigmax = [1/5 1/2]; % stdev for second distribution (target present)
+
+Z = sigmaz(1) * randn(N, 1);    % H0 distribution (target not present)
+X = sigmax(1) * randn(N, 1);    % H1 distribution (target present)
+dst = rand(N, 1) < p0;          % randomly select from X, Z
+Y = A + Z.*dst + X.*~dst;
+
+% now that we have two gaussians with the same mean, the decision rule
+    % is |x-mu| <> eta
+dec_boundary = 2*sigmaz(1)^2*sigmax(1)^2/(sigmax(1)^2-sigmaz(1)^2) ...
+        *log(sigmax(1)*p0/(sigmaz(1)*(1-p0)));
+    
+emp_accuracy = mean(((Y - a).^2 > dec_boundary) == dst)
+
+% too lazy to calculate theoretical accuracy, just look at next plot
+% and see if the decision boundary is correct as a sanity check
+
+%% (still q1e) sanity check: plot eta vs. accuracy
+% (to demonstrate that this is actually the best error)
+
+etas = linspace(-5, 5, 1e3);
+accuracies = zeros(length(etas), 1);
+for i=1:length(etas)
+    accuracies(i) = mean(((Y - a).^2 > etas(i)) == dst);
+end
+
+figure();
+hold('on');
+plot(etas, accuracies);
+xline(dec_boundary);
+yline(emp_accuracy, 'r');
+hold('off');
+ylabel('Accuracy');
+xlabel('$$\eta$$');
+ylim([0 1]);
+title('Accuracy vs. decision boundary');
+legend(["Empirical accuracy", "Theoretical optimal boundary", ...
+    "Optimal accuracy"], 'Location', 'southeast');
+
+%% (still q1e) plotting ROCs
+% same as q1b, but with the same setup from q1e
+etas = linspace(-10, 10, 1e3);
+sigmas = logspace(-1, 1, 5);
+P_F = zeros(length(etas), 1);
+P_D = zeros(length(etas), 1);
+
+% iterate over decision boundary
+% and iterate over several SNRs
+for j=1:length(sigmaz)
+for k=1:length(sigmax)
+    Z = sigmaz(j) * randn(N, 1);    % H0 distribution (target not present)
+    X = sigmax(k) * randn(N, 1);    % H1 distribution (target present)
+    dst = rand(N, 1) < p0;          % randomly select from X, Z
+    Y = A + Z.*dst + X.*~dst;
+
+    % MAP rule: minimizing probability of error
+    map_boundary = 2*sigmaz(j)^2*sigmax(k)^2/(sigmax(k)^2-sigmaz(j)^2) ...
+        *log(sigmax(k)*p0/(sigmaz(j)*(1-p0)));
+
+    for i=1:length(etas)
+        A_hat = (Y - a).^2 > etas(i);
+
+        P_D(i) = sum((A_hat == 1) & (dst == 1)) / sum(dst == 1);
+        P_F(i) = sum((A_hat == 1) & (dst == 0)) / sum(dst == 0);
+
+        % find closest to map boundary
+        if abs(etas(i) - map_boundary) < (etas(2) - etas(1)) / 2
+            map_i = i;
+        end
+    end
+
+    figure();
+    hold('on');
+    plot(P_F, P_D);
+    plot(P_F(map_i), P_D(map_i), 'g*');
+    hold('off');
+    ylabel('$$P_D$$');
+    xlabel('$$P_F$$');
+    title(sprintf(['Receiver Operating Characteristic $$\\sigma_x=%f$$' ...
+        ', $$\\sigma_z=%f$$'], sigmaz(j), sigmax(k)));
+    legend(["ROC", sprintf('MAP boundary (\\eta=%f)', map_boundary)], ...
+        'Location', 'southeast');
+end
+end
 
 %% q2: MAP estimate on fisheriris
 % using a multivariate gaussian estimator
@@ -181,3 +274,5 @@ end
 % disregard actual maximum value (mx), just get decision (est)
 [mx, est] = max(results, [], 2);
 accuracy = mean(est == test_labels)
+
+% TODO: plot confusion matrix
