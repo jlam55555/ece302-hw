@@ -5,7 +5,10 @@
 % and the Probability and Statistics toolkit (for mvnpdf)
 %
 % Scratch work performed on desmos:
-% https://www.desmos.com/calculator/3bp8fsljnz
+% https://www.desmos.com/calculator/lchs3gr6oy
+%
+% MATLAB published version:
+% http://files.lambdalambda.ninja/reports/20-21_spring/ece302_proj4.lam_lee.html
 
 set(0,'defaultTextInterpreter','latex');
 clc; clear; close all;
@@ -275,4 +278,5 @@ end
 [mx, est] = max(results, [], 2);
 accuracy = mean(est == test_labels)
 
-% TODO: plot confusion matrix
+confusionchart(est, test_labels);
+title('Iris classification confusion matrix');
