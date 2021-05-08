@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>proj4</title><meta name="generator" content="MATLAB 9.10"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-04-16"><meta name="DC.source" content="proj4.m"><style type="text/css">
+      --><title>proj4</title><meta name="generator" content="MATLAB 9.10"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-04-19"><meta name="DC.source" content="proj4.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -89,7 +89,7 @@ theo_accuracy = p0*qfunc(-dec_boundary/sigma) <span class="keyword">...</span>
 </pre><pre class="codeoutput">
 emp_accuracy =
 
-    0.8882
+    0.8901
 
 
 theo_accuracy =
@@ -129,7 +129,7 @@ P_D = zeros(length(etas), 1);
     Y = X + A;
 
     <span class="comment">% MAP rule: minimizing probability of error</span>
-    map_boundary = (2*sigma^2*log(p0/(1-p0)) + a^2)/(2*a);
+    map_boundary = (2*sigmas(j)^2*log(p0/(1-p0)) + a^2)/(2*a);
 
     <span class="comment">% q1c</span>
     <span class="comment">% 8.8 in detection theory pdf</span>
@@ -138,23 +138,17 @@ P_D = zeros(length(etas), 1);
     <span class="comment">%</span>
     <span class="comment">% basically changes the coefficients from (P1,P0) to (10*P1, P0)</span>
     <span class="comment">% see new factor of 10</span>
-    q1c_boundary = (2*sigma^2*log(p0/(10*(1-p0))) + a^2)/(2*a);
+    q1c_boundary = (2*sigmas(j)^2*log(p0/(10*(1-p0))) + a^2)/(2*a);
+
+    <span class="comment">% find closest points to optimal decision boundaries</span>
+    [~, q1c_i] = min(abs(etas-map_boundary));
+    [~, map_i] = min(abs(etas-q1c_boundary));
 
     <span class="keyword">for</span> i=1:length(etas)
         A_hat = Y &gt; etas(i);
 
         P_D(i) = sum((A_hat == 1) &amp; (A == a)) / sum(A == a);
         P_F(i) = sum((A_hat == 1) &amp; (A == 0)) / sum(A == 0);
-
-        <span class="comment">% if this is the closest point to the decision boundary for part c</span>
-        <span class="keyword">if</span> abs(etas(i) - q1c_boundary) &lt; (etas(2) - etas(1)) / 2
-            q1c_i = i;
-        <span class="keyword">end</span>
-
-        <span class="comment">% same thing but for the MAP boundary</span>
-        <span class="keyword">if</span> abs(etas(i) - map_boundary) &lt; (etas(2) - etas(1)) / 2
-            map_i = i;
-        <span class="keyword">end</span>
     <span class="keyword">end</span>
 
     figure();
@@ -171,7 +165,7 @@ P_D = zeros(length(etas), 1);
         sprintf(<span class="string">'Q1c modified cost boundary (\\eta=%f)'</span>, q1c_boundary)],<span class="keyword">...</span>
         <span class="string">'Location'</span>, <span class="string">'southeast'</span>);
 <span class="keyword">end</span>
-</pre><img vspace="5" hspace="5" src="proj4_02.png" alt=""> <img vspace="5" hspace="5" src="proj4_03.png" alt=""> <img vspace="5" hspace="5" src="proj4_04.png" alt=""> <img vspace="5" hspace="5" src="proj4_05.png" alt=""> <img vspace="5" hspace="5" src="proj4_06.png" alt=""> <h2 id="5">q1d</h2><p>calculating cost of best decision boundary using cost metric from q1c</p><pre class="codeinput"><span class="comment">% use same sigma as in part a</span>
+</pre><img vspace="5" hspace="5" src="proj4_02.png" alt=""> <img vspace="5" hspace="5" src="proj4_03.png" alt=""> <img vspace="5" hspace="5" src="proj4_04.png" alt=""> <img vspace="5" hspace="5" src="proj4_05.png" alt=""> <img vspace="5" hspace="5" src="proj4_06.png" alt=""> <img vspace="5" hspace="5" src="proj4_07.png" alt=""> <h2 id="5">q1d</h2><p>calculating cost of best decision boundary using cost metric from q1c</p><pre class="codeinput"><span class="comment">% use same sigma as in part a</span>
 X = sigma*randn(N, 1);
 Y = X + A;
 
@@ -194,7 +188,7 @@ plot(p0s, costs);
 ylabel(<span class="string">'Mean cost'</span>);
 xlabel(<span class="string">'$$P_0$$ (prior probability of target not present)'</span>);
 title(<span class="string">'Cost vs. prior probability of target not present'</span>);
-</pre><img vspace="5" hspace="5" src="proj4_07.png" alt=""> <h2 id="6">q1e</h2><p>similar to part a, but now we have two distributions with the same mean but different variances (a.o.t. same variance, different means);</p><pre class="codeinput">A = a * ones(N, 1); <span class="comment">% use same mean a as before, now for both distributions</span>
+</pre><img vspace="5" hspace="5" src="proj4_08.png" alt=""> <h2 id="6">q1e</h2><p>similar to part a, but now we have two distributions with the same mean but different variances (a.o.t. same variance, different means);</p><pre class="codeinput">A = a * ones(N, 1); <span class="comment">% use same mean a as before, now for both distributions</span>
 sigmaz = [3 5];     <span class="comment">% stdev for first distribution (target not present)</span>
 sigmax = [1/5 1/2]; <span class="comment">% stdev for second distribution (target present)</span>
 
@@ -215,7 +209,7 @@ emp_accuracy = mean(((Y - a).^2 &gt; dec_boundary) == dst)
 </pre><pre class="codeoutput">
 emp_accuracy =
 
-    0.9118
+    0.9082
 
 </pre><h2 id="7">(still q1e) sanity check: plot eta vs. accuracy</h2><p>(to demonstrate that this is actually the best error)</p><pre class="codeinput">etas = linspace(-5, 5, 1e3);
 accuracies = zeros(length(etas), 1);
@@ -235,7 +229,7 @@ ylim([0 1]);
 title(<span class="string">'Accuracy vs. decision boundary'</span>);
 legend([<span class="string">"Empirical accuracy"</span>, <span class="string">"Theoretical optimal boundary"</span>, <span class="keyword">...</span>
     <span class="string">"Optimal accuracy"</span>], <span class="string">'Location'</span>, <span class="string">'southeast'</span>);
-</pre><img vspace="5" hspace="5" src="proj4_08.png" alt=""> <h2 id="8">(still q1e) plotting ROCs</h2><p>same as q1b, but with the same setup from q1e</p><pre class="codeinput">etas = linspace(-10, 10, 1e3);
+</pre><img vspace="5" hspace="5" src="proj4_09.png" alt=""> <h2 id="8">(still q1e) plotting ROCs</h2><p>same as q1b, but with the same setup from q1e</p><pre class="codeinput">etas = linspace(-10, 10, 1e3);
 sigmas = logspace(-1, 1, 5);
 P_F = zeros(length(etas), 1);
 P_D = zeros(length(etas), 1);
@@ -253,16 +247,14 @@ P_D = zeros(length(etas), 1);
     map_boundary = 2*sigmaz(j)^2*sigmax(k)^2/(sigmax(k)^2-sigmaz(j)^2) <span class="keyword">...</span>
         *log(sigmax(k)*p0/(sigmaz(j)*(1-p0)));
 
+    <span class="comment">% find closest points to optimal decision boundary</span>
+    [~, map_i] = min(abs(etas-map_boundary));
+
     <span class="keyword">for</span> i=1:length(etas)
         A_hat = (Y - a).^2 &gt; etas(i);
 
         P_D(i) = sum((A_hat == 1) &amp; (dst == 1)) / sum(dst == 1);
         P_F(i) = sum((A_hat == 1) &amp; (dst == 0)) / sum(dst == 0);
-
-        <span class="comment">% find closest to map boundary</span>
-        <span class="keyword">if</span> abs(etas(i) - map_boundary) &lt; (etas(2) - etas(1)) / 2
-            map_i = i;
-        <span class="keyword">end</span>
     <span class="keyword">end</span>
 
     figure();
@@ -278,7 +270,7 @@ P_D = zeros(length(etas), 1);
         <span class="string">'Location'</span>, <span class="string">'southeast'</span>);
 <span class="keyword">end</span>
 <span class="keyword">end</span>
-</pre><img vspace="5" hspace="5" src="proj4_09.png" alt=""> <img vspace="5" hspace="5" src="proj4_10.png" alt=""> <img vspace="5" hspace="5" src="proj4_11.png" alt=""> <img vspace="5" hspace="5" src="proj4_12.png" alt=""> <h2 id="9">q2: MAP estimate on fisheriris</h2><p>using a multivariate gaussian estimator</p><pre class="codeinput">clc; clear; close <span class="string">all</span>;
+</pre><img vspace="5" hspace="5" src="proj4_10.png" alt=""> <img vspace="5" hspace="5" src="proj4_11.png" alt=""> <img vspace="5" hspace="5" src="proj4_12.png" alt=""> <img vspace="5" hspace="5" src="proj4_13.png" alt=""> <h2 id="9">q2: MAP estimate on fisheriris</h2><p>using a multivariate gaussian estimator</p><pre class="codeinput">clc; clear; close <span class="string">all</span>;
 load(<span class="string">'Iris'</span>);
 
 N = size(features, 1);          <span class="comment">% numbere of samples</span>
@@ -311,8 +303,8 @@ priors = histcounts(test_labels) / length(test_labels);
     results(:,i) = mvnpdf(test_features, mus, covs) * priors(i);
 <span class="keyword">end</span>
 
-<span class="comment">% disregard actual maximum value (mx), just get decision (est)</span>
-[mx, est] = max(results, [], 2);
+<span class="comment">% disregard actual maximum value, just get decision (est)</span>
+[~, est] = max(results, [], 2);
 accuracy = mean(est == test_labels)
 
 confusionchart(est, test_labels);
@@ -320,9 +312,9 @@ title(<span class="string">'Iris classification confusion matrix'</span>);
 </pre><pre class="codeoutput">
 accuracy =
 
-    0.9747
+    0.9722
 
-</pre><img vspace="5" hspace="5" src="proj4_13.png" alt=""> <p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021a</a><br></p></div><!--
+</pre><img vspace="5" hspace="5" src="proj4_14.png" alt=""> <p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %%% ECE302 Project 4
 % Steven Lee & Jonathan Lam
@@ -404,7 +396,7 @@ for j=1:length(sigmas)
     Y = X + A;
 
     % MAP rule: minimizing probability of error
-    map_boundary = (2*sigma^2*log(p0/(1-p0)) + a^2)/(2*a);
+    map_boundary = (2*sigmas(j)^2*log(p0/(1-p0)) + a^2)/(2*a);
 
     % q1c
     % 8.8 in detection theory pdf
@@ -413,23 +405,17 @@ for j=1:length(sigmas)
     %
     % basically changes the coefficients from (P1,P0) to (10*P1, P0)
     % see new factor of 10
-    q1c_boundary = (2*sigma^2*log(p0/(10*(1-p0))) + a^2)/(2*a);
+    q1c_boundary = (2*sigmas(j)^2*log(p0/(10*(1-p0))) + a^2)/(2*a);
 
+    % find closest points to optimal decision boundaries
+    [~, q1c_i] = min(abs(etas-map_boundary));
+    [~, map_i] = min(abs(etas-q1c_boundary));
+    
     for i=1:length(etas)
         A_hat = Y > etas(i);
 
         P_D(i) = sum((A_hat == 1) & (A == a)) / sum(A == a);
         P_F(i) = sum((A_hat == 1) & (A == 0)) / sum(A == 0);
-
-        % if this is the closest point to the decision boundary for part c
-        if abs(etas(i) - q1c_boundary) < (etas(2) - etas(1)) / 2
-            q1c_i = i;
-        end
-
-        % same thing but for the MAP boundary
-        if abs(etas(i) - map_boundary) < (etas(2) - etas(1)) / 2
-            map_i = i;
-        end
     end
 
     figure();
@@ -538,17 +524,15 @@ for k=1:length(sigmax)
     % MAP rule: minimizing probability of error
     map_boundary = 2*sigmaz(j)^2*sigmax(k)^2/(sigmax(k)^2-sigmaz(j)^2) ...
         *log(sigmax(k)*p0/(sigmaz(j)*(1-p0)));
+    
+    % find closest points to optimal decision boundary
+    [~, map_i] = min(abs(etas-map_boundary));
 
     for i=1:length(etas)
         A_hat = (Y - a).^2 > etas(i);
 
         P_D(i) = sum((A_hat == 1) & (dst == 1)) / sum(dst == 1);
         P_F(i) = sum((A_hat == 1) & (dst == 0)) / sum(dst == 0);
-
-        % find closest to map boundary
-        if abs(etas(i) - map_boundary) < (etas(2) - etas(1)) / 2
-            map_i = i;
-        end
     end
 
     figure();
@@ -600,8 +584,8 @@ for i=1:C
     results(:,i) = mvnpdf(test_features, mus, covs) * priors(i);
 end
 
-% disregard actual maximum value (mx), just get decision (est)
-[mx, est] = max(results, [], 2);
+% disregard actual maximum value, just get decision (est)
+[~, est] = max(results, [], 2);
 accuracy = mean(est == test_labels)
 
 confusionchart(est, test_labels);

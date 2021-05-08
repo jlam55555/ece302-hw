@@ -78,7 +78,7 @@ for j=1:length(sigmas)
     Y = X + A;
 
     % MAP rule: minimizing probability of error
-    map_boundary = (2*sigma^2*log(p0/(1-p0)) + a^2)/(2*a);
+    map_boundary = (2*sigmas(j)^2*log(p0/(1-p0)) + a^2)/(2*a);
 
     % q1c
     % 8.8 in detection theory pdf
@@ -87,23 +87,17 @@ for j=1:length(sigmas)
     %
     % basically changes the coefficients from (P1,P0) to (10*P1, P0)
     % see new factor of 10
-    q1c_boundary = (2*sigma^2*log(p0/(10*(1-p0))) + a^2)/(2*a);
+    q1c_boundary = (2*sigmas(j)^2*log(p0/(10*(1-p0))) + a^2)/(2*a);
 
+    % find closest points to optimal decision boundaries
+    [~, q1c_i] = min(abs(etas-map_boundary));
+    [~, map_i] = min(abs(etas-q1c_boundary));
+    
     for i=1:length(etas)
         A_hat = Y > etas(i);
 
         P_D(i) = sum((A_hat == 1) & (A == a)) / sum(A == a);
         P_F(i) = sum((A_hat == 1) & (A == 0)) / sum(A == 0);
-
-        % if this is the closest point to the decision boundary for part c
-        if abs(etas(i) - q1c_boundary) < (etas(2) - etas(1)) / 2
-            q1c_i = i;
-        end
-
-        % same thing but for the MAP boundary
-        if abs(etas(i) - map_boundary) < (etas(2) - etas(1)) / 2
-            map_i = i;
-        end
     end
 
     figure();
@@ -212,17 +206,15 @@ for k=1:length(sigmax)
     % MAP rule: minimizing probability of error
     map_boundary = 2*sigmaz(j)^2*sigmax(k)^2/(sigmax(k)^2-sigmaz(j)^2) ...
         *log(sigmax(k)*p0/(sigmaz(j)*(1-p0)));
+    
+    % find closest points to optimal decision boundary
+    [~, map_i] = min(abs(etas-map_boundary));
 
     for i=1:length(etas)
         A_hat = (Y - a).^2 > etas(i);
 
-        P_D(i) = sum((A_hat == 1) & (dst == 1)) / sum(dst == 1);
-        P_F(i) = sum((A_hat == 1) & (dst == 0)) / sum(dst == 0);
-
-        % find closest to map boundary
-        if abs(etas(i) - map_boundary) < (etas(2) - etas(1)) / 2
-            map_i = i;
-        end
+        P_D(i) = sum((A_hat == 1) & (dst == 0)) / sum(dst == 0);
+        P_F(i) = sum((A_hat == 1) & (dst == 1)) / sum(dst == 1);
     end
 
     figure();
@@ -274,8 +266,8 @@ for i=1:C
     results(:,i) = mvnpdf(test_features, mus, covs) * priors(i);
 end
 
-% disregard actual maximum value (mx), just get decision (est)
-[mx, est] = max(results, [], 2);
+% disregard actual maximum value, just get decision (est)
+[~, est] = max(results, [], 2);
 accuracy = mean(est == test_labels)
 
 confusionchart(est, test_labels);
