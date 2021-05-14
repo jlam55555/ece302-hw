@@ -1,0 +1,76 @@
+c[n] = [1 .2 .4]
+
+s[n] = 2*randi(2)-3
+d[n] = sigma * randn()
+
+s_hat[n] = ((s[n] * c[n]) + d[n]) * h[n]
+
+Find R_sr[n], R_rr[n]
+
+R_sr[n] = c[n] * R_ss[n]
+
+r[n] = ((s[n] * c[n]) + d[n])
+
+R_sr[n] = E[s(n)r(n-n0)] = E[s(n)(s[n-n0] * c[n-n0] + d[n-n0])]
+= E[s(n)s(n-n0) * c[n-n0]] + E[s(n)d(n-n0)]
+= E[S(n)s(n-n0)] * c[n]
+= R_ss[n] * c[n]
+
+R_rr = E[((s[n] * c[n]) + d[n]) ((s[n-n0] * c[n-n0]) + d[n-n0])]
+R_rr = E[(s[n]*c[n])(s[n-n0]*c[n-n0])
+	+ (s[n]*c[n]])(d[n-n0])
+	+ d[n](s[n-n0]*c[n-n0])
+	+ d[n]d[n-n0]]
+= 
+
+
+s*c = b
+
+
+S_(s_hat)r(z) = S_sr(z)
+S_rr(z)H(z) = S_(shat)r(z) = S_sr(z)
+S_rr(z) = S_dd(z) + S_ss(z)C(z)C(1/z)
+S_sr(z) = S_sb(z) = S_ss(z)C(1/z)
+
+
+-------------------------
+
+R_ss[n] = delta[t]
+c[n] = [1 .2 .4]
+
+R_sr[n] = R_shatr[n] = R_ss[n]*c[n] = c[n]
+
+R_dd[n] = (sigma^2)delta(t)
+
+R_rr[n] = __ + R_dd[n]
+
+S_yy(z) = S_ss(z)C(z)C(1/z) = S_ss(z)|C(z)|^2     |C(z)|^2 = S_cc(z)
+R_yy[n] = R_ss[n] * R_cc[n] + R_dd[n] = R_cc[n] + R_dd[n]
+
+R_cc[n] = c*c = [1.2 .28 .4]
+
+R_rr[n] = [2.2 .28 .4 0 0 0 00]
+
+let sigma^2 = 1
+
+
+R_sr[n] = [1 .2 .4 0 0 0 0 0 0 0...]
+R_rr[n] = [2.2 .28 .4 0 0 0 0 0...]
+
+
+NORMAL EQs
+
+R_rr * h = Ryx
+[
+2.2	.28	.4	0
+.28	2.2	.28	.4 
+.4	.28	2.2	.28
+0	.4	.28	2.2
+]
+
+R_sr = [
+1
+.2
+.4
+0
+]
