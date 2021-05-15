@@ -64,11 +64,11 @@ for N = [4 6 10]
 	R_sr = zeros([N, 1]);
 	R_sr(1:3) = [1 .2 .4].';
 
-	R = R_rr(abs((1:N) - (1:N).') + 1)
+	R = R_rr(abs((1:N) - (1:N).') + 1);
 
 	% solve normal equation
 	% Rh = R_sr => h = inv(R)*R_sr
-	h = R \ R_sr(1:N)
+	h = R \ R_sr(1:N);
 
 	% need to pad h so that it's correctly centered
 	% so that conv w/ "same" padding works correctly
